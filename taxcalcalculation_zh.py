@@ -22,7 +22,7 @@ def select_tariftabelle(year, tax_type: TaxType, tarif: Tarif):
         print(f"File {filename} not found. Please check the file path.")
         return None
     
-def calculate_income_tax(year, tarif: Tarif, income, satzbestimmend):
+def calculate_einfache_steuer_einkommen(year, tarif: Tarif, income, satzbestimmend):
     data = select_tariftabelle(year, TaxType.EINKOMMEN, tarif)
     first_bracket = data.iloc[0]
     if satzbestimmend <= first_bracket.iloc[0]:
@@ -36,9 +36,9 @@ def calculate_income_tax(year, tarif: Tarif, income, satzbestimmend):
             current_bracket = bracket
     calculated_tax = current_bracket[2] + (satzbestimmend - current_bracket[1]) / 100 * current_bracket[3]
     satz = calculated_tax / (satzbestimmend / 100) # tax per 100 CHF
-    return income / 100 * satz
+    return einkommen / 100 * satz
 
-def calculate_wealth_tax(year, tarif: Tarif, wealth):
+def calculate_einfache_steuer_vermoegen(year, tarif: Tarif, wealth):
     data = select_tariftabelle(year, TaxType.VERMOEGEN, tarif)
     first_bracket = data.iloc[0]
     if wealth <= first_bracket.iloc[0]:
@@ -51,36 +51,35 @@ def calculate_wealth_tax(year, tarif: Tarif, wealth):
             current_bracket = bracket
     return current_bracket[2] + (wealth - current_bracket[1]) / 1000 * current_bracket[3]
 
-def calculate_staats_gemeinde_steuern(year, tarif: Tarif, income, satzbestimmend, wealth):
-    income_tax = calculate_income_tax(year, tarif, income, satzbestimmend)
-    print(income_tax)
-    wealth_tax = calculate_wealth_tax(year, tarif, wealth)
+def calculate_staats_gemeinde_steuern(year, tarif: Tarif, einkommen, satzbestimmend, wealth):
+    einfache_steuer_einkommen = calculate_einfache_steuer_einkommen(year, tarif, einkommen, satzbestimmend)
+    einfache_steuer_vermoegen = calculate_einfache_steuer_vermoegen(year, tarif, wealth)
     staatssteuerfuss = 0.99 #TODO add steuerfuss to file
     gemeindesteuerfuss = 1.19
-    return income_tax * staatssteuerfuss + income_tax * gemeindesteuerfuss + wealth_tax * staatssteuerfuss + wealth_tax * gemeindesteuerfuss
+    return einfache_steuer_einkommen * staatssteuerfuss + einfache_steuer_einkommen * gemeindesteuerfuss + einfache_steuer_vermoegen * staatssteuerfuss + einfache_steuer_vermoegen * gemeindesteuerfuss
     
 
-income = 68900
-satzbestimmend = 71500
+einkommen = 79800
+satzbestimmend = 138900
 wealth = 159000
 
-income_tax_grundtarif = calculate_income_tax(2018, Tarif.GRUNDTARIF, income, satzbestimmend)
-income_tax_verheiratetentarif = calculate_income_tax(2018, Tarif.VERHEIRATETENTARIF, income, satzbestimmend)
-wealth_tax_grundtarif = calculate_wealth_tax(2018, Tarif.GRUNDTARIF, wealth)
-wealth_tax_verheiratetentarif = calculate_wealth_tax(2018, Tarif.VERHEIRATETENTARIF, wealth)
+einfache_steuer_einkommen_grundtarif = calculate_einfache_steuer_einkommen(2018, Tarif.GRUNDTARIF, einkommen, satzbestimmend)
+einfache_steuer_einkommen_verheiratetentarif = calculate_einfache_steuer_einkommen(2018, Tarif.VERHEIRATETENTARIF, einkommen, satzbestimmend)
+einfache_steuer_vermoegen_grundtarif = calculate_einfache_steuer_vermoegen(2018, Tarif.GRUNDTARIF, wealth)
+einfache_steuer_vermoegenx_verheiratetentarif = calculate_einfache_steuer_vermoegen(2018, Tarif.VERHEIRATETENTARIF, wealth)
 
-staats_gemeinde_steuern_grundtarif = calculate_staats_gemeinde_steuern(2018, Tarif.GRUNDTARIF, income, satzbestimmend, wealth)
-staats_gemeinde_steuern_verheiratetentarif = calculate_staats_gemeinde_steuern(2018, Tarif.VERHEIRATETENTARIF, income, satzbestimmend, wealth)
+staats_gemeinde_steuern_grundtarif = calculate_staats_gemeinde_steuern(2018, Tarif.GRUNDTARIF, einkommen, satzbestimmend, wealth)
+staats_gemeinde_steuern_verheiratetentarif = calculate_staats_gemeinde_steuern(2018, Tarif.VERHEIRATETENTARIF, einkommen, satzbestimmend, wealth)
 
 
-print("Einkommen: ", "{:,.2f}".format(income))
+print("Einkommen: ", "{:,.2f}".format(einkommen))
 print("Vermögen: ", "{:,.2f}".format(wealth))
 print("")
 print("== Einfache Steuer == ")
-print("Einkommen GT: ", "{:,.2f}".format(income_tax_grundtarif))
-print("Einkommen VT: ", "{:,.2f}".format(income_tax_verheiratetentarif))
-print("Vermögen GT:  ", "{:,.2f}".format(wealth_tax_grundtarif))
-print("Vermögen VT:  ", "{:,.2f}".format(wealth_tax_verheiratetentarif))
+print("Einkommen GT: ", "{:,.2f}".format(einfache_steuer_einkommen_grundtarif))
+print("Einkommen VT: ", "{:,.2f}".format(einfache_steuer_einkommen_verheiratetentarif))
+print("Vermögen GT:  ", "{:,.2f}".format(einfache_steuer_vermoegen_grundtarif))
+print("Vermögen VT:  ", "{:,.2f}".format(einfache_steuer_vermoegenx_verheiratetentarif))
 print("")
 print("== Staats- und Gemeindesteuern ==")
 print("Einkommen GT: ", "{:,.2f}".format(staats_gemeinde_steuern_grundtarif))
