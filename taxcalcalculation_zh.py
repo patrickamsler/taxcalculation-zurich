@@ -11,12 +11,10 @@ class Tarif(Enum):
 
 
 def select_tariftabelle(year, tax_type: TaxType, tarif: Tarif):
-    # Construct the filename
     filename = f"./tariftabellen/{year}-{tax_type.name.lower()}-{tarif.name.lower()}.csv"
     names_einkommen = ['Einkommensbereich (CHF)', 'Steuer Grundtarif (CHF)', 'Zusätzlicher Steuerbetrag pro 100 CHF']
     names_vermoegen = ['steuerbares Vermögen (CHF)', 'Steuer (CHF)', 'für je weitere 1000. Vemögen']
     names = names_einkommen if tax_type == 'einkommen' else names_vermoegen
-    # Read the CSV file
     try:
         data = pd.read_csv(filename, names=names, skiprows=1, header=None)
         return data
