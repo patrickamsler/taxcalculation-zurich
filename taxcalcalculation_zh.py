@@ -34,9 +34,14 @@ def calculate_einfache_steuer_einkommen(year, tarif: Tarif, income, satzbestimme
             break
         else:
             current_bracket = bracket
-    calculated_tax = current_bracket[2] + (satzbestimmend - current_bracket[1]) / 100 * current_bracket[3]
-    satz = calculated_tax / (satzbestimmend / 100) # tax per 100 CHF
-    return einkommen / 100 * satz
+    berechnete_steuer = current_bracket[2] + (satzbestimmend - current_bracket[1]) / 100 * current_bracket[3]
+    satz = berechnete_steuer / (satzbestimmend / 100) # pro 100 CHF
+    betrag = einkommen / 100 * satz
+    return {
+        'satz': satz,
+        'betrag': betrag
+    }
+
 
 def calculate_einfache_steuer_vermoegen(year, tarif: Tarif, wealth):
     data = select_tariftabelle(year, TaxType.VERMOEGEN, tarif)
@@ -49,18 +54,24 @@ def calculate_einfache_steuer_vermoegen(year, tarif: Tarif, wealth):
             break
         else:
             current_bracket = bracket
-    return current_bracket[2] + (wealth - current_bracket[1]) / 1000 * current_bracket[3]
+    betrag = current_bracket[2] + (wealth - current_bracket[1]) / 1000 * current_bracket[3]
+    satz = betrag / (wealth / 100)
+    return {
+        'satz': satz,
+        'betrag': betrag
+    }
+
 
 def calculate_staats_gemeinde_steuern(year, tarif: Tarif, einkommen, satzbestimmend, wealth):
-    einfache_steuer_einkommen = calculate_einfache_steuer_einkommen(year, tarif, einkommen, satzbestimmend)
-    einfache_steuer_vermoegen = calculate_einfache_steuer_vermoegen(year, tarif, wealth)
+    einfache_steuer_einkommen = calculate_einfache_steuer_einkommen(year, tarif, einkommen, satzbestimmend)['betrag']
+    einfache_steuer_vermoegen = calculate_einfache_steuer_vermoegen(year, tarif, wealth)['betrag']
     staatssteuerfuss = 0.99 #TODO add steuerfuss to file
     gemeindesteuerfuss = 1.19
     return einfache_steuer_einkommen * staatssteuerfuss + einfache_steuer_einkommen * gemeindesteuerfuss + einfache_steuer_vermoegen * staatssteuerfuss + einfache_steuer_vermoegen * gemeindesteuerfuss
     
 
 einkommen = 79800
-satzbestimmend = 138900
+satzbestimmend = 79800
 wealth = 159000
 
 einfache_steuer_einkommen_grundtarif = calculate_einfache_steuer_einkommen(2018, Tarif.GRUNDTARIF, einkommen, satzbestimmend)
@@ -73,14 +84,18 @@ staats_gemeinde_steuern_verheiratetentarif = calculate_staats_gemeinde_steuern(2
 
 
 print("Einkommen: ", "{:,.2f}".format(einkommen))
+print("Satzbestimmend: ", "{:,.2f}".format(satzbestimmend))
 print("Vermögen: ", "{:,.2f}".format(wealth))
 print("")
 print("== Einfache Steuer == ")
-print("Einkommen GT: ", "{:,.2f}".format(einfache_steuer_einkommen_grundtarif))
-print("Einkommen VT: ", "{:,.2f}".format(einfache_steuer_einkommen_verheiratetentarif))
-print("Vermögen GT:  ", "{:,.2f}".format(einfache_steuer_vermoegen_grundtarif))
-print("Vermögen VT:  ", "{:,.2f}".format(einfache_steuer_vermoegenx_verheiratetentarif))
+print("Satz GT: ", "{:,.3f}".format(einfache_steuer_einkommen_grundtarif['satz']), " pro 100 CHF")
+print("Einkommen GT: ", "{:,.2f}".format(einfache_steuer_einkommen_grundtarif['betrag']))
+print("Vermögen GT:  ", "{:,.2f}".format(einfache_steuer_vermoegen_grundtarif['betrag']))
+print("")
+print("Satz VT: ", "{:,.3f}".format(einfache_steuer_einkommen_verheiratetentarif['satz']), " pro 100 CHF")
+print("Einkommen VT: ", "{:,.2f}".format(einfache_steuer_einkommen_verheiratetentarif['betrag']))
+print("Vermögen VT:  ", "{:,.2f}".format(einfache_steuer_vermoegenx_verheiratetentarif['betrag']))
 print("")
 print("== Staats- und Gemeindesteuern ==")
-print("Einkommen GT: ", "{:,.2f}".format(staats_gemeinde_steuern_grundtarif))
-print("Einkommen VT: ", "{:,.2f}".format(staats_gemeinde_steuern_verheiratetentarif))
+print("GT: ", "{:,.2f}".format(staats_gemeinde_steuern_grundtarif))
+print("VT: ", "{:,.2f}".format(staats_gemeinde_steuern_verheiratetentarif))
