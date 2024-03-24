@@ -52,7 +52,7 @@ def calculate_wealth_tax(year, tarif: Tarif, wealth):
 def calculate_staats_gemeinde_steuern(year, tarif: Tarif, income, wealth):
     income_tax = calculate_income_tax(year, tarif, income)
     wealth_tax = calculate_wealth_tax(year, tarif, wealth)
-    staatssteuerfuss = 0.99
+    staatssteuerfuss = 0.99 ## TODO add steuerfuss to file
     gemeindesteuerfuss = 1.19
     return income_tax * staatssteuerfuss + income_tax * gemeindesteuerfuss + wealth_tax * staatssteuerfuss + wealth_tax * gemeindesteuerfuss
     
