@@ -22,19 +22,21 @@ def select_tariftabelle(year, tax_type: TaxType, tarif: Tarif):
         print(f"File {filename} not found. Please check the file path.")
         return None
     
-def calculate_income_tax(year, tarif: Tarif, income):
+def calculate_income_tax(year, tarif: Tarif, income, satzbestimmend):
     data = select_tariftabelle(year, TaxType.EINKOMMEN, tarif)
     first_bracket = data.iloc[0]
-    if income <= first_bracket.iloc[0]:
+    if satzbestimmend <= first_bracket.iloc[0]:
         return 0
     
     current_bracket = first_bracket
     for bracket in data.itertuples():
-        if income < bracket[1]:
+        if satzbestimmend < bracket[1]:
             break
         else:
             current_bracket = bracket
-    return current_bracket[2] + (income - current_bracket[1]) / 100 * current_bracket[3]
+    calculated_tax = current_bracket[2] + (satzbestimmend - current_bracket[1]) / 100 * current_bracket[3]
+    satz = calculated_tax / (satzbestimmend / 100) # tax per 100 CHF
+    return income / 100 * satz
 
 def calculate_wealth_tax(year, tarif: Tarif, wealth):
     data = select_tariftabelle(year, TaxType.VERMOEGEN, tarif)
@@ -49,24 +51,26 @@ def calculate_wealth_tax(year, tarif: Tarif, wealth):
             current_bracket = bracket
     return current_bracket[2] + (wealth - current_bracket[1]) / 1000 * current_bracket[3]
 
-def calculate_staats_gemeinde_steuern(year, tarif: Tarif, income, wealth):
-    income_tax = calculate_income_tax(year, tarif, income)
+def calculate_staats_gemeinde_steuern(year, tarif: Tarif, income, satzbestimmend, wealth):
+    income_tax = calculate_income_tax(year, tarif, income, satzbestimmend)
+    print(income_tax)
     wealth_tax = calculate_wealth_tax(year, tarif, wealth)
-    staatssteuerfuss = 0.99 ## TODO add steuerfuss to file
+    staatssteuerfuss = 0.99 #TODO add steuerfuss to file
     gemeindesteuerfuss = 1.19
     return income_tax * staatssteuerfuss + income_tax * gemeindesteuerfuss + wealth_tax * staatssteuerfuss + wealth_tax * gemeindesteuerfuss
     
 
-income = 68_900
-wealth = 159_000
+income = 68900
+satzbestimmend = 71500
+wealth = 159000
 
-income_tax_grundtarif = calculate_income_tax(2018, Tarif.GRUNDTARIF, income)
-income_tax_verheiratetentarif = calculate_income_tax(2018, Tarif.VERHEIRATETENTARIF, income)
+income_tax_grundtarif = calculate_income_tax(2018, Tarif.GRUNDTARIF, income, satzbestimmend)
+income_tax_verheiratetentarif = calculate_income_tax(2018, Tarif.VERHEIRATETENTARIF, income, satzbestimmend)
 wealth_tax_grundtarif = calculate_wealth_tax(2018, Tarif.GRUNDTARIF, wealth)
 wealth_tax_verheiratetentarif = calculate_wealth_tax(2018, Tarif.VERHEIRATETENTARIF, wealth)
 
-staats_gemeinde_steuern_grundtarif = calculate_staats_gemeinde_steuern(2018, Tarif.GRUNDTARIF, income, wealth)
-staats_gemeinde_steuern_verheiratetentarif = calculate_staats_gemeinde_steuern(2018, Tarif.VERHEIRATETENTARIF, income, wealth)
+staats_gemeinde_steuern_grundtarif = calculate_staats_gemeinde_steuern(2018, Tarif.GRUNDTARIF, income, satzbestimmend, wealth)
+staats_gemeinde_steuern_verheiratetentarif = calculate_staats_gemeinde_steuern(2018, Tarif.VERHEIRATETENTARIF, income, satzbestimmend, wealth)
 
 
 print("Einkommen: ", "{:,.2f}".format(income))
