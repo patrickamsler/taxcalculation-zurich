@@ -50,21 +50,41 @@ def calculate_wealth_tax(year, tarif: Tarif, wealth):
         else:
             current_bracket = bracket
     return current_bracket[2] + (wealth - current_bracket[1]) / 1000 * current_bracket[3]
+
+def calculate_staats_gemeinde_steuern(year, tarif: Tarif, income, wealth):
+    income_tax = calculate_income_tax(year, tarif, income)
+    wealth_tax = calculate_wealth_tax(year, tarif, wealth)
+    staatssteuerfuss = 1.00
+    gemeindesteuerfuss = 1.19
+    return income_tax * staatssteuerfuss + income_tax * gemeindesteuerfuss + wealth_tax * staatssteuerfuss + wealth_tax * gemeindesteuerfuss
     
 
-income = 100_000
-wealth = 385_000
+income = 68_900
+wealth = 159_000
 
 income_tax_grundtarif = calculate_income_tax(2018, Tarif.GRUNDTARIF, income)
 income_tax_verheiratetentarif = calculate_income_tax(2018, Tarif.VERHEIRATETENTARIF, income)
 wealth_tax_grundtarif = calculate_wealth_tax(2018, Tarif.GRUNDTARIF, wealth)
 wealth_tax_verheiratetentarif = calculate_wealth_tax(2018, Tarif.VERHEIRATETENTARIF, wealth)
 
-print("Einkommen: ", income)
-print("Vermögen: ", wealth)
+
+print("Einkommen: ", "{:,.2f}".format(income))
+print("Vermögen: ", "{:,.2f}".format(wealth))
 print("")
 print("== Einfache Steuer == ")
-print("Einkommen GT: ", income_tax_grundtarif)
-print("Einkommen VT: ", income_tax_verheiratetentarif)
-print("Vermögen GT:  ", wealth_tax_grundtarif)
-print("Vermögen VT:  ", wealth_tax_verheiratetentarif)
+print("Einkommen GT: ", "{:,.2f}".format(income_tax_grundtarif))
+print("Einkommen VT: ", "{:,.2f}".format(income_tax_verheiratetentarif))
+print("Vermögen GT:  ", "{:,.2f}".format(wealth_tax_grundtarif))
+print("Vermögen VT:  ", "{:,.2f}".format(wealth_tax_verheiratetentarif))
+
+
+staatssteuerfuss = 0.99
+gemeindesteuerfuss = 1.19
+
+staats_gemeinde_steuern_grundtarif = calculate_staats_gemeinde_steuern(2018, Tarif.GRUNDTARIF, income, wealth)
+staats_gemeinde_steuern_verheiratetentarif = calculate_staats_gemeinde_steuern(2018, Tarif.VERHEIRATETENTARIF, income, wealth)
+
+print("")
+print("== Staats- und Gemeindesteuern ==")
+print("Einkommen GT: ", "{:,.2f}".format(staats_gemeinde_steuern_grundtarif))
+print("Einkommen VT: ", "{:,.2f}".format(staats_gemeinde_steuern_verheiratetentarif))
