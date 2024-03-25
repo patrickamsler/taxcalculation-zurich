@@ -22,7 +22,7 @@ def select_tariftabelle(year, tax_type: TaxType, tarif: Tarif):
         print(f"File {filename} not found. Please check the file path.")
         return None
     
-def calculate_einfache_steuer_einkommen(year, tarif: Tarif, income, satzbestimmend):
+def calculate_einfache_steuer_einkommen(year, tarif: Tarif, einkommen, satzbestimmend):
     data = select_tariftabelle(year, TaxType.EINKOMMEN, tarif)
     first_bracket = data.iloc[0]
     if satzbestimmend <= first_bracket.iloc[0]:
@@ -43,19 +43,19 @@ def calculate_einfache_steuer_einkommen(year, tarif: Tarif, income, satzbestimme
     }
 
 
-def calculate_einfache_steuer_vermoegen(year, tarif: Tarif, wealth):
+def calculate_einfache_steuer_vermoegen(year, tarif: Tarif, vermoegen):
     data = select_tariftabelle(year, TaxType.VERMOEGEN, tarif)
     first_bracket = data.iloc[0]
-    if wealth <= first_bracket.iloc[0]:
+    if vermoegen <= first_bracket.iloc[0]:
         return 0
     current_bracket = first_bracket
     for bracket in data.itertuples():
-        if wealth < bracket[1]:
+        if vermoegen < bracket[1]:
             break
         else:
             current_bracket = bracket
-    betrag = current_bracket[2] + (wealth - current_bracket[1]) / 1000 * current_bracket[3]
-    satz = betrag / (wealth / 100)
+    betrag = current_bracket[2] + (vermoegen - current_bracket[1]) / 1000 * current_bracket[3]
+    satz = betrag / (vermoegen / 100)
     return {
         'satz': satz,
         'betrag': betrag
@@ -70,22 +70,22 @@ def calculate_staats_gemeinde_steuern(year, tarif: Tarif, einkommen, satzbestimm
     return einfache_steuer_einkommen * staatssteuerfuss + einfache_steuer_einkommen * gemeindesteuerfuss + einfache_steuer_vermoegen * staatssteuerfuss + einfache_steuer_vermoegen * gemeindesteuerfuss
     
 
-einkommen = 79800
-satzbestimmend = 79800
-wealth = 159000
+einkommen = 61300
+satzbestimmend = 61300
+vermoegen = 770000
 
 einfache_steuer_einkommen_grundtarif = calculate_einfache_steuer_einkommen(2018, Tarif.GRUNDTARIF, einkommen, satzbestimmend)
 einfache_steuer_einkommen_verheiratetentarif = calculate_einfache_steuer_einkommen(2018, Tarif.VERHEIRATETENTARIF, einkommen, satzbestimmend)
-einfache_steuer_vermoegen_grundtarif = calculate_einfache_steuer_vermoegen(2018, Tarif.GRUNDTARIF, wealth)
-einfache_steuer_vermoegenx_verheiratetentarif = calculate_einfache_steuer_vermoegen(2018, Tarif.VERHEIRATETENTARIF, wealth)
+einfache_steuer_vermoegen_grundtarif = calculate_einfache_steuer_vermoegen(2018, Tarif.GRUNDTARIF, vermoegen)
+einfache_steuer_vermoegenx_verheiratetentarif = calculate_einfache_steuer_vermoegen(2018, Tarif.VERHEIRATETENTARIF, vermoegen)
 
-staats_gemeinde_steuern_grundtarif = calculate_staats_gemeinde_steuern(2018, Tarif.GRUNDTARIF, einkommen, satzbestimmend, wealth)
-staats_gemeinde_steuern_verheiratetentarif = calculate_staats_gemeinde_steuern(2018, Tarif.VERHEIRATETENTARIF, einkommen, satzbestimmend, wealth)
+staats_gemeinde_steuern_grundtarif = calculate_staats_gemeinde_steuern(2018, Tarif.GRUNDTARIF, einkommen, satzbestimmend, vermoegen)
+staats_gemeinde_steuern_verheiratetentarif = calculate_staats_gemeinde_steuern(2018, Tarif.VERHEIRATETENTARIF, einkommen, satzbestimmend, vermoegen)
 
 
 print("Einkommen: ", "{:,.2f}".format(einkommen))
 print("Satzbestimmend: ", "{:,.2f}".format(satzbestimmend))
-print("Vermögen: ", "{:,.2f}".format(wealth))
+print("Vermögen: ", "{:,.2f}".format(vermoegen))
 print("")
 print("== Einfache Steuer == ")
 print("Satz GT: ", "{:,.3f}".format(einfache_steuer_einkommen_grundtarif['satz']), " pro 100 CHF")
