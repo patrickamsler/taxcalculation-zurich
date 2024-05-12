@@ -62,17 +62,21 @@ def calculate_einfache_steuer_vermoegen(year, tarif: Tarif, vermoegen):
     }
 
 
-def calculate_staats_gemeinde_steuern(year, tarif: Tarif, einkommen, satzbestimmend, wealth):
+def calculate_staats_gemeinde_steuern(year, tarif: Tarif, einkommen, satzbestimmend, vermoegen):
     einfache_steuer_einkommen = calculate_einfache_steuer_einkommen(year, tarif, einkommen, satzbestimmend)['betrag']
-    einfache_steuer_vermoegen = calculate_einfache_steuer_vermoegen(year, tarif, wealth)['betrag']
-    staatssteuerfuss = 0.99 #TODO add steuerfuss to file
+    einfache_steuer_vermoegen = calculate_einfache_steuer_vermoegen(year, tarif, vermoegen)['betrag']
+    staatssteuerfuss = 0.99  # Example value, replace with actual method to fetch the tax rate
     gemeindesteuerfuss = 1.19
-    return einfache_steuer_einkommen * staatssteuerfuss + einfache_steuer_einkommen * gemeindesteuerfuss + einfache_steuer_vermoegen * staatssteuerfuss + einfache_steuer_vermoegen * gemeindesteuerfuss
+
+    total_steuer_einkommen = einfache_steuer_einkommen * (staatssteuerfuss + gemeindesteuerfuss)
+    total_steuer_vermoegen = einfache_steuer_vermoegen * (staatssteuerfuss + gemeindesteuerfuss)
+
+    return total_steuer_einkommen + total_steuer_vermoegen
     
 
-einkommen = 61300
-satzbestimmend = 61300
-vermoegen = 770000
+einkommen = 85100
+satzbestimmend = 85100
+vermoegen = 187000
 
 einfache_steuer_einkommen_grundtarif = calculate_einfache_steuer_einkommen(2018, Tarif.GRUNDTARIF, einkommen, satzbestimmend)
 einfache_steuer_einkommen_verheiratetentarif = calculate_einfache_steuer_einkommen(2018, Tarif.VERHEIRATETENTARIF, einkommen, satzbestimmend)
